@@ -21,6 +21,7 @@ type RabbitMQ struct {
 //创建RAbbitMQ结构体实例
 func NewRabbitMQ(queueName, exchange, key string) *RabbitMQ {
 	rabbitmq := &RabbitMQ{QueueName: queueName, Exchange: exchange, Key: key, Mqurl: MQURL}
+
 	var err error
 
 	// 创建rabbitmq连接
@@ -29,6 +30,7 @@ func NewRabbitMQ(queueName, exchange, key string) *RabbitMQ {
 
 	rabbitmq.channel, err = rabbitmq.conn.Channel()
 	rabbitmq.failOnErr(err, "获取channel失败！")
+
 	return rabbitmq
 }
 
@@ -114,7 +116,7 @@ func (r *RabbitMQ) ConsumeSimple() {
 	go func() {
 		for d := range msgs {
 			// 实现我们要处理的逻辑函数
-			log.Printf("Received a message: %s", d.Body)
+			log.Printf("Recieved a message: %s", d.Body)
 		}
 	}()
 	log.Printf("[*] Waiting for messages, To exit press CTRL + C")
@@ -131,6 +133,7 @@ func NewRabbitMQPubSub(exchageName string) *RabbitMQ {
 
 	rabbitmq.channel, err = rabbitmq.conn.Channel()
 	rabbitmq.failOnErr(err, "failed to open a channel")
+
 	return rabbitmq
 }
 
@@ -216,5 +219,102 @@ func (r *RabbitMQ) RecieveSub() {
 		}
 	}()
 	fmt.Println("To exit press CTRL + C")
-	<- forever
+	<-forever
+}
+
+// 路由模式创建RabbitMQ实例
+func NewRabbitMQRouting(exchangeName, routingKey string) *RabbitMQ {
+	rabbitmq := NewRabbitMQ("", exchangeName, routingKey)
+
+	var err error
+	rabbitmq.conn, err = amqp.Dial(rabbitmq.Mqurl)
+	rabbitmq.failOnErr(err, "failed to connect rabbitmq!")
+
+	rabbitmq.channel, err = rabbitmq.conn.Channel()
+	rabbitmq.failOnErr(err, "failed to open a channel!")
+
+	return rabbitmq
+}
+
+// 路由模式发送消息
+func (r *RabbitMQ) PublishRouting(message string) {
+
+	// 1.尝试创建交换机
+	err := r.channel.ExchangeDeclare(
+		r.Exchange,
+		"direct", // 改为direct
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	r.failOnErr(err, "failed to declare an exchange")
+
+	// 2.发送消息
+	err = r.channel.Publish(
+		r.Exchange,
+		r.Key,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(message),
+		},
+	)
+}
+
+// 路由模式接受消息
+func (r *RabbitMQ) RecieveRouting() {
+	// 1.尝试创建交换机
+	err := r.channel.ExchangeDeclare(
+		r.Exchange,
+		"direct", // 改为direct
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	r.failOnErr(err, "failed to declare an exchange")
+
+	// 尝试创建队列，队列名不写
+	q, err := r.channel.QueueDeclare(
+		"", // 随机生产队列名称
+		false,
+		false,
+		true,
+		false,
+		nil,
+	)
+	r.failOnErr(err, "failed to declare a queue")
+
+	// 绑定队列到exchange中
+	err = r.channel.QueueBind(
+		q.Name,
+		r.Key,
+		r.Exchange,
+		false,
+		nil,
+	)
+
+	// 消费消息
+	message, err := r.channel.Consume(
+		q.Name,
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	forever := make(chan bool)
+
+	go func() {
+		for d := range message {
+			log.Printf("recieved a message: %s", d.Body)
+		}
+	}()
+	<-forever
 }
