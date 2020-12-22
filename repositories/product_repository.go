@@ -14,12 +14,12 @@ type IProduct interface {
 
 	// 连接数据
 	Conn() error
-	Insert(product *datamodels.Product) (int64, error)
+	Insert(*datamodels.Product) (int64, error)
 	Delete(int64) bool
-	Update(product *datamodels.Product) error
+	Update(*datamodels.Product) error
 	SelectByKey(int64) (*datamodels.Product, error)
 	SelectAll() ([]*datamodels.Product, error)
-	SubProductNum(productID int64) error
+	SubProductNum(int64) error
 }
 
 type ProductManager struct {
@@ -64,7 +64,7 @@ func (p *ProductManager) Insert(product *datamodels.Product) (productId int64, e
 	}
 
 	// 传入参数
-	result, errStmt := stmt.Exec(product.ProductName, product.ProductNum, product.ProductImage, product.ProductURL)
+	result, errStmt := stmt.Exec(product.ProductName, product.ProductNum, product.ProductImage, product.ProductUrl)
 	if errStmt != nil {
 		return 0, errStmt
 	}
@@ -97,14 +97,14 @@ func (p *ProductManager) Update(product *datamodels.Product) error {
 		return err
 	}
 
-	sql := "UPDATE product SET productName=?, productNum=?, productImage=?, productUrl=?, WHERE ID=" + strconv.FormatInt(
+	sql := "UPDATE product SET productName=?, productNum=?, productImage=?, productUrl=? WHERE ID=" + strconv.FormatInt(
 		product.ID, 10)
 	stmt, err := p.mysqlConn.Prepare(sql)
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(product.ProductName, product.ProductNum, product.ProductImage, product.ProductURL)
+	_, err = stmt.Exec(product.ProductName, product.ProductNum, product.ProductImage, product.ProductUrl)
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (p *ProductManager) SelectByKey(productID int64) (productResult *datamodels
 		return &datamodels.Product{}, err
 	}
 
-	sql := "SELECT * FROM" + p.table + "WHERE ID=" + strconv.FormatInt(productID, 10)
+	sql := "SELECT * FROM " + p.table + " WHERE ID=" + strconv.FormatInt(productID, 10)
 	row, errRow := p.mysqlConn.Query(sql)
 	defer row.Close()
 	if errRow != nil {
@@ -129,6 +129,7 @@ func (p *ProductManager) SelectByKey(productID int64) (productResult *datamodels
 	if len(result) == 0 {
 		return &datamodels.Product{}, nil
 	}
+	productResult = &datamodels.Product{}
 	common.DataToStructByTagSql(result, productResult)
 	return
 }

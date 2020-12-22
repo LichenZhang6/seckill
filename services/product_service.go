@@ -9,9 +9,9 @@ type IProductService interface {
 	GetProductByID(int64) (*datamodels.Product, error)
 	GetAllProduct() ([]*datamodels.Product, error)
 	DeleteProductByID(int64) bool
-	InsertProduct(product *datamodels.Product) (int64, error)
-	UpdateProduct(product *datamodels.Product) error
-	SubNumberOne(productID int64) error
+	InsertProduct(*datamodels.Product) (int64, error)
+	UpdateProduct(*datamodels.Product) error
+	SubNumberOne(int64) error
 }
 
 type ProductService struct {

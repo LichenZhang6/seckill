@@ -6,6 +6,7 @@ import (
 	"seckill/common"
 	"seckill/datamodels"
 	"seckill/services"
+	"strconv"
 )
 
 type ProductController struct {
@@ -54,6 +55,41 @@ func (p *ProductController) PostAdd() {
 	_, err := p.ProductService.InsertProduct(product)
 	if err != nil {
 		p.Ctx.Application().Logger().Debug(err)
+	}
+	p.Ctx.Redirect("/product/all")
+}
+
+func (p *ProductController) GetManager() mvc.View {
+	idString := p.Ctx.URLParam("id")
+	id, err := strconv.ParseInt(idString, 10, 16)
+	if err != nil {
+		p.Ctx.Application().Logger().Debug(err)
+	}
+
+	product, err := p.ProductService.GetProductByID(id)
+	if err != nil {
+		p.Ctx.Application().Logger().Debug(err)
+	}
+
+	return mvc.View{
+		Name: "product/manager.html",
+		Data: iris.Map{
+			"product": product,
+		},
+	}
+}
+
+func (p *ProductController) GetDelete() {
+	idString := p.Ctx.URLParam("id")
+	id, err := strconv.ParseInt(idString, 10, 64)
+	if err != nil {
+		p.Ctx.Application().Logger().Debug(err)
+	}
+	isOK := p.ProductService.DeleteProductByID(id)
+	if isOK {
+		p.Ctx.Application().Logger().Debug("删除商品成功，ID为" + idString)
+	} else {
+		p.Ctx.Application().Logger().Debug("删除商品失败，ID为" + idString)
 	}
 	p.Ctx.Redirect("/product/all")
 }
