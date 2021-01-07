@@ -3,3 +3,16 @@
 3.services
 4.controllers
 5.views
+
+作业
+1.继续完成订单管理的其他功能展示
+    1）查询并且展示单个订单信息
+    2）删除订单
+    3）更新修改订单
+
+2.简化controller注册代码
+    1）简单创建controller实现注册
+
+3.简化model层代码（中小项目）
+    1）推荐学习gorm
+    2) 掌握gorm

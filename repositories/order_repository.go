@@ -17,16 +17,16 @@ type IOrderRepository interface {
 	SelectAllWithInfo() (map[int]map[string]string, error)
 }
 
-type OrderManagerRepository struct {
+type OrderManager struct {
 	table     string
 	mysqlConn *sql.DB
 }
 
 func NewOrderManager(table string, sql *sql.DB) IOrderRepository {
-	return &OrderManagerRepository{table: table, mysqlConn: sql}
+	return &OrderManager{table: table, mysqlConn: sql}
 }
 
-func (o *OrderManagerRepository) Conn() error {
+func (o *OrderManager) Conn() error {
 	if o.mysqlConn == nil {
 		mysql, err := common.NewMysqlConn()
 		if err != nil {
@@ -41,12 +41,12 @@ func (o *OrderManagerRepository) Conn() error {
 	return nil
 }
 
-func (o *OrderManagerRepository) Insert(order *datamodels.Order) (productID int64, err error) {
+func (o *OrderManager) Insert(order *datamodels.Order) (productID int64, err error) {
 	if err = o.Conn(); err != nil {
 		return
 	}
 
-	sql := "INSERT " + o.table + " SET userID=?, productID=?, orderStatus=?"
+	sql := "INSERT `order` SET userID=?, productID=?, orderStatus=?"
 	stmt, errStmt := o.mysqlConn.Prepare(sql)
 	if errStmt != nil {
 		return productID, errStmt
@@ -60,7 +60,7 @@ func (o *OrderManagerRepository) Insert(order *datamodels.Order) (productID int6
 	return result.LastInsertId()
 }
 
-func (o *OrderManagerRepository) Delete(orderID int64) (isOK bool) {
+func (o *OrderManager) Delete(orderID int64) (isOK bool) {
 	if err := o.Conn(); err != nil {
 		return
 	}
@@ -79,7 +79,7 @@ func (o *OrderManagerRepository) Delete(orderID int64) (isOK bool) {
 	return true
 }
 
-func (o *OrderManagerRepository) Update(order *datamodels.Order) (err error) {
+func (o *OrderManager) Update(order *datamodels.Order) (err error) {
 	if errConn := o.Conn(); errConn != nil {
 		return errConn
 	}
@@ -94,7 +94,7 @@ func (o *OrderManagerRepository) Update(order *datamodels.Order) (err error) {
 	return
 }
 
-func (o *OrderManagerRepository) SelectByKey(orderID int64) (order *datamodels.Order, err error) {
+func (o *OrderManager) SelectByKey(orderID int64) (order *datamodels.Order, err error) {
 	if errConn := o.Conn(); errConn != nil {
 		return &datamodels.Order{}, errConn
 	}
@@ -115,7 +115,7 @@ func (o *OrderManagerRepository) SelectByKey(orderID int64) (order *datamodels.O
 	return
 }
 
-func (o *OrderManagerRepository) SelectAll() (orderArray []*datamodels.Order, err error) {
+func (o *OrderManager) SelectAll() (orderArray []*datamodels.Order, err error) {
 	if errConn := o.Conn(); errConn != nil {
 		return nil, errConn
 	}
@@ -139,7 +139,7 @@ func (o *OrderManagerRepository) SelectAll() (orderArray []*datamodels.Order, er
 	return
 }
 
-func (o *OrderManagerRepository) SelectAllWithInfo() (orderMap map[int]map[string]string, err error) {
+func (o *OrderManager) SelectAllWithInfo() (orderMap map[int]map[string]string, err error) {
 	if errConn := o.Conn(); errConn != nil {
 		return nil, errConn
 	}

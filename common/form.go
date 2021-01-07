@@ -94,7 +94,7 @@ type DecoderOptions struct {
 }
 
 // RegisterCustomType It is the method responsible for register functions for decoding custom types
-func (dec *Decoder) RegisterCustomType(fn DecodeCustomTypeFunc, types []interface{}, fields []interface{}) *Decoder {
+func (dec *Decoder) RegisterCustomType(fn DecodeCustomTypeFunc, types, fields []interface{}) *Decoder {
 	if dec.customTypes == nil {
 		dec.customTypes = make(map[reflect.Type]*DecodeCustomType, 100)
 	}

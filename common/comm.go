@@ -33,7 +33,7 @@ func DataToStructByTagSql(data map[string]string, obj interface{}) {
 }
 
 // 类型转换
-func TypeConversion(value string, ntype string) (reflect.Value, error) {
+func TypeConversion(value, ntype string) (reflect.Value, error) {
 	if ntype == "string" {
 		return reflect.ValueOf(value), nil
 	} else if ntype == "time.Time" {

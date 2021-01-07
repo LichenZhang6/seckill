@@ -62,6 +62,5 @@ func main() {
 		iris.Addr("localhost:8080"),
 		iris.WithoutServerError(iris.ErrServerClosed),
 		iris.WithOptimizations,
-		iris.WithOptimizations,
 	)
 }
