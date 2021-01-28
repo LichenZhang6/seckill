@@ -11,7 +11,7 @@ var (
 	sum int64 = 0
 
 	// 预存商品数量
-	productNum int64 = 1000
+	productNum int64 = 5
 
 	// 互斥锁
 	mutex sync.Mutex
@@ -45,6 +45,7 @@ func GetProduct(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+	fmt.Println("预存商品数量", productNum)
 	http.HandleFunc("/getOne", GetProduct)
 	err := http.ListenAndServe(":8084", nil)
 	if err != nil {

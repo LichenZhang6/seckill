@@ -9,6 +9,7 @@ import (
 	"seckill/common"
 	"seckill/frontend/middleware"
 	"seckill/frontend/web/controllers"
+	RabbitMQ "seckill/rabbitmq"
 	"seckill/repositories"
 	"seckill/services"
 	"time"
@@ -60,6 +61,8 @@ func main() {
 	user.Register(ctx, userService, session.Start)
 	user.Handle(new(controllers.UserController))
 
+	rabbitmq := RabbitMQ.NewRabbitMQSimple("product")
+
 	product := repositories.NewProductManager("product", db)
 	productService := services.NewProductService(product)
 	order := repositories.NewOrderManager("order", db)
@@ -67,7 +70,7 @@ func main() {
 	productParty := app.Party("/product")
 	pro := mvc.New(productParty)
 	productParty.Use(middleware.AuthConProduct)
-	pro.Register(productService, orderService, session.Start)
+	pro.Register(productService, orderService, session.Start, ctx, rabbitmq)
 	pro.Handle(new(controllers.ProductController))
 
 	app.Run(
